@@ -13,18 +13,29 @@
             <span>⚠️ {{ errorMessage }}</span>
         </div>
 
-        <form (ngSubmit)="joinMeeting()" class="form" #f="ngForm">
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn" [class.tab-active]="activeTab === 'manual'" (click)="activeTab = 'manual'">
+                ✍️ Manual
+            </button>
+            <button class="tab-btn" [class.tab-active]="activeTab === 'json'" (click)="activeTab = 'json'">
+                📋 Paste JSON
+            </button>
+        </div>
+
+        <!-- ===== TAB: MANUAL ===== -->
+        <form *ngIf="activeTab === 'manual'" (ngSubmit)="joinMeeting()" class="form" #f="ngForm">
 
             <div class="field-group">
                 <label class="label" for="meetingId">Meeting ID <span class="required">*</span></label>
                 <input id="meetingId" class="input" type="text" [(ngModel)]="meetingId" name="meetingId"
-                    placeholder="e.g. a1b2c3d4-e5f6-7890-abcd-ef1234567890" required autocomplete="off" />
+                    placeholder="e.g. 76422aa5-6594-41f1-90f2-68d733472954" required autocomplete="off" />
             </div>
 
             <div class="field-group">
                 <label class="label" for="attendeeId">Attendee ID <span class="required">*</span></label>
                 <input id="attendeeId" class="input" type="text" [(ngModel)]="attendeeId" name="attendeeId"
-                    placeholder="e.g. aa11bb22-cc33-dd44-ee55-ff6677889900" required autocomplete="off" />
+                    placeholder="e.g. 1547407c-20d9-f73a-25f7-6559bcc3d98c" required autocomplete="off" />
             </div>
 
             <div class="field-group">
@@ -83,6 +94,29 @@
                 Join Meeting
             </button>
         </form>
+
+        <!-- ===== TAB: PASTE JSON ===== -->
+        <div *ngIf="activeTab === 'json'" class="form">
+
+            <div class="json-hint">
+                Paste the full API response JSON below. All fields will be filled automatically.
+            </div>
+
+            <div *ngIf="jsonError" class="error-banner">
+                <span>⚠️ {{ jsonError }}</span>
+            </div>
+
+            <div class="field-group">
+                <label class="label" for="jsonInput">API Response JSON</label>
+                <textarea id="jsonInput" class="input input-json" [(ngModel)]="jsonInput" name="jsonInput"
+                    placeholder='{ "status": { ... }, "data": { "meeting": { ... }, "attendee": { ... } } }' rows="14"
+                    autocomplete="off" spellcheck="false"></textarea>
+            </div>
+
+            <button type="button" class="btn-join" (click)="applyJsonResponse()" [disabled]="!jsonInput.trim()">
+                Apply & Fill Fields →
+            </button>
+        </div>
     </div>
 
     <!-- === JOINING STATE === -->

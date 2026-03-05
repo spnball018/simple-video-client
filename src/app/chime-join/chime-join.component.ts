@@ -37,6 +37,11 @@ export class ChimeJoinComponent implements OnDestroy {
     signalingUrl = '';
     turnControlUrl = '';
 
+    // Tab
+    activeTab: 'manual' | 'json' = 'manual';
+    jsonInput = '';
+    jsonError = '';
+
     // State
     appState: AppState = 'form';
     errorMessage = '';
@@ -48,6 +53,39 @@ export class ChimeJoinComponent implements OnDestroy {
     private meetingSession: DefaultMeetingSession | null = null;
     private localTileId: number | null = null;
     private joinTimeoutHandle: any = null;
+
+    applyJsonResponse(): void {
+        this.jsonError = '';
+        try {
+            const parsed = JSON.parse(this.jsonInput);
+            const meeting = parsed?.data?.meeting;
+            const attendee = parsed?.data?.attendee;
+
+            if (!meeting || !attendee) {
+                this.jsonError = 'Invalid format: missing data.meeting or data.attendee.';
+                return;
+            }
+
+            const mp = meeting.mediaPlacement ?? {};
+
+            this.meetingId = meeting.meetingId ?? '';
+            this.attendeeId = attendee.attendeeId ?? '';
+            this.joinToken = attendee.joinToken ?? '';
+            this.audioHostUrl = mp.audioHostUrl ?? '';
+            this.audioFallbackUrl = mp.audioFallbackUrl ?? '';
+            this.screenDataUrl = mp.screenDataUrl ?? '';
+            this.screenSharingUrl = mp.screenSharingUrl ?? '';
+            this.screenViewingUrl = mp.screenViewingUrl ?? '';
+            this.signalingUrl = mp.signalingUrl ?? '';
+            this.turnControlUrl = mp.turnControlUrl ?? '';
+
+            // Switch to manual tab to show the filled values
+            this.activeTab = 'manual';
+            this.showAdvanced = true;
+        } catch (e: any) {
+            this.jsonError = 'Invalid JSON: ' + (e?.message ?? 'parse error');
+        }
+    }
 
     async joinMeeting(): Promise<void> {
         if (!this.meetingId || !this.attendeeId || !this.joinToken || !this.audioHostUrl || !this.signalingUrl) {

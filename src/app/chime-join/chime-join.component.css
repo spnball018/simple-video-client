@@ -82,6 +82,61 @@
     }
 }
 
+/* ----- Tabs ----- */
+.tabs {
+    display: flex;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 24px;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    color: #64748b;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+.tab-btn:hover:not(.tab-active) {
+    background: rgba(255, 255, 255, 0.05);
+    color: #94a3b8;
+}
+
+.tab-active {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: #fff !important;
+    box-shadow: 0 2px 12px rgba(99, 102, 241, 0.35);
+}
+
+/* JSON tab extras */
+.json-hint {
+    font-size: 13px;
+    color: #64748b;
+    background: rgba(99, 102, 241, 0.06);
+    border: 1px solid rgba(99, 102, 241, 0.15);
+    border-radius: 10px;
+    padding: 10px 14px;
+    line-height: 1.5;
+}
+
+.input-json {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    min-height: 240px;
+    resize: vertical;
+}
+
 /* Form */
 .form {
     display: flex;
