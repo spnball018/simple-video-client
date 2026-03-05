@@ -13,30 +13,6 @@ import {
     VideoTileState
 } from 'amazon-chime-sdk-js';
 
-export interface MediaPlacement {
-    AudioHostUrl: string;
-    AudioFallbackUrl: string;
-    ScreenDataUrl: string;
-    ScreenSharingUrl: string;
-    ScreenViewingUrl: string;
-    SignalingUrl: string;
-    TurnControlUrl: string;
-    EventIngestionUrl?: string;
-}
-
-export interface MeetingInfo {
-    MeetingId: string;
-    ExternalMeetingId?: string;
-    MediaRegion?: string;
-    MediaPlacement: MediaPlacement;
-}
-
-export interface AttendeeInfo {
-    AttendeeId: string;
-    ExternalUserId?: string;
-    JoinToken: string;
-}
-
 type AppState = 'form' | 'joining' | 'meeting' | 'error';
 
 @Component({
@@ -48,6 +24,7 @@ export class ChimeJoinComponent implements OnDestroy {
 
     @ViewChild('localVideo') localVideoEl!: ElementRef<HTMLVideoElement>;
     @ViewChild('remoteVideosContainer') remoteContainerEl!: ElementRef<HTMLDivElement>;
+    @ViewChild('remoteAudio') remoteAudioEl!: ElementRef<HTMLAudioElement>;
 
     // Form fields
     meetingId = '';
@@ -113,16 +90,23 @@ export class ChimeJoinComponent implements OnDestroy {
 
             this.statusMessage = 'Setting up audio...';
 
-            // Get audio devices and start
-            const audioInputDevices = await this.meetingSession.audioVideo.listAudioInputDevices();
-            if (audioInputDevices.length > 0) {
-                await this.meetingSession.audioVideo.startAudioInput(audioInputDevices[0].deviceId);
+            // Request audio input — requires HTTPS or localhost
+            try {
+                const audioInputDevices = await this.meetingSession.audioVideo.listAudioInputDevices();
+                if (audioInputDevices.length > 0) {
+                    await this.meetingSession.audioVideo.startAudioInput(audioInputDevices[0].deviceId);
+                }
+            } catch (mediaErr: any) {
+                console.warn('Microphone access failed:', mediaErr);
+                throw new Error(
+                    'Microphone access was denied. Make sure you are using HTTPS (not HTTP) and have granted microphone permission.'
+                );
             }
 
             // Get video devices
             const videoInputDevices = await this.meetingSession.audioVideo.listVideoInputDevices();
 
-            // Observe tile updates
+            // Observe tile and session events
             this.meetingSession.audioVideo.addObserver({
                 videoTileDidUpdate: (tileState: VideoTileState) => {
                     if (!tileState.boundVideoElement) {
@@ -163,6 +147,14 @@ export class ChimeJoinComponent implements OnDestroy {
                 audioVideoDidStart: () => {
                     this.statusMessage = 'Connected!';
                     this.appState = 'meeting';
+
+                    // Bind the hidden <audio> element for remote audio playback
+                    setTimeout(() => {
+                        const audioEl = this.remoteAudioEl?.nativeElement;
+                        if (audioEl) {
+                            this.meetingSession!.audioVideo.bindAudioElement(audioEl);
+                        }
+                    }, 300);
                 },
                 audioVideoDidStop: (_sessionStatus: any) => {
                     if (this.appState === 'meeting') {
@@ -176,9 +168,9 @@ export class ChimeJoinComponent implements OnDestroy {
                 }
             });
 
-            // Start audio/video
-            this.meetingSession.audioVideo.start();
+            // Start the session
             this.statusMessage = 'Joining...';
+            this.meetingSession.audioVideo.start();
 
             // Start local video if camera available
             if (videoInputDevices.length > 0) {
