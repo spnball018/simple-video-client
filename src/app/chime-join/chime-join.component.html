@@ -1,0 +1,131 @@
+<div class="page">
+
+    <!-- === JOIN FORM STATE === -->
+    <div *ngIf="appState === 'form' || appState === 'error'" class="form-container">
+
+        <div class="brand">
+            <div class="brand-icon">🎥</div>
+            <h1>Join Meeting</h1>
+            <p class="brand-sub">Enter your credentials to join as an attendee</p>
+        </div>
+
+        <div *ngIf="errorMessage" class="error-banner">
+            <span>⚠️ {{ errorMessage }}</span>
+        </div>
+
+        <form (ngSubmit)="joinMeeting()" class="form" #f="ngForm">
+
+            <div class="field-group">
+                <label class="label" for="meetingId">Meeting ID <span class="required">*</span></label>
+                <input id="meetingId" class="input" type="text" [(ngModel)]="meetingId" name="meetingId"
+                    placeholder="e.g. a1b2c3d4-e5f6-7890-abcd-ef1234567890" required autocomplete="off" />
+            </div>
+
+            <div class="field-group">
+                <label class="label" for="attendeeId">Attendee ID <span class="required">*</span></label>
+                <input id="attendeeId" class="input" type="text" [(ngModel)]="attendeeId" name="attendeeId"
+                    placeholder="e.g. aa11bb22-cc33-dd44-ee55-ff6677889900" required autocomplete="off" />
+            </div>
+
+            <div class="field-group">
+                <label class="label" for="joinToken">Join Token <span class="required">*</span></label>
+                <textarea id="joinToken" class="input input-token" [(ngModel)]="joinToken" name="joinToken"
+                    placeholder="Paste your join token here..." required rows="3" autocomplete="off"></textarea>
+            </div>
+
+            <div class="field-group">
+                <label class="label" for="audioHostUrl">Audio Host URL <span class="required">*</span></label>
+                <input id="audioHostUrl" class="input" type="text" [(ngModel)]="audioHostUrl" name="audioHostUrl"
+                    placeholder="wss://..." required autocomplete="off" />
+            </div>
+
+            <div class="field-group">
+                <label class="label" for="signalingUrl">Signaling URL <span class="required">*</span></label>
+                <input id="signalingUrl" class="input" type="text" [(ngModel)]="signalingUrl" name="signalingUrl"
+                    placeholder="wss://..." required autocomplete="off" />
+            </div>
+
+            <!-- Advanced toggle -->
+            <button type="button" class="btn-toggle-advanced" (click)="showAdvanced = !showAdvanced">
+                {{ showAdvanced ? '▲ Hide' : '▼ Show' }} optional MediaPlacement URLs
+            </button>
+
+            <div *ngIf="showAdvanced" class="advanced-fields">
+                <div class="field-group">
+                    <label class="label" for="audioFallbackUrl">Audio Fallback URL</label>
+                    <input id="audioFallbackUrl" class="input" type="text" [(ngModel)]="audioFallbackUrl"
+                        name="audioFallbackUrl" placeholder="wss://..." autocomplete="off" />
+                </div>
+                <div class="field-group">
+                    <label class="label" for="screenDataUrl">Screen Data URL</label>
+                    <input id="screenDataUrl" class="input" type="text" [(ngModel)]="screenDataUrl" name="screenDataUrl"
+                        placeholder="wss://..." autocomplete="off" />
+                </div>
+                <div class="field-group">
+                    <label class="label" for="screenSharingUrl">Screen Sharing URL</label>
+                    <input id="screenSharingUrl" class="input" type="text" [(ngModel)]="screenSharingUrl"
+                        name="screenSharingUrl" placeholder="wss://..." autocomplete="off" />
+                </div>
+                <div class="field-group">
+                    <label class="label" for="screenViewingUrl">Screen Viewing URL</label>
+                    <input id="screenViewingUrl" class="input" type="text" [(ngModel)]="screenViewingUrl"
+                        name="screenViewingUrl" placeholder="wss://..." autocomplete="off" />
+                </div>
+                <div class="field-group">
+                    <label class="label" for="turnControlUrl">TURN Control URL</label>
+                    <input id="turnControlUrl" class="input" type="text" [(ngModel)]="turnControlUrl"
+                        name="turnControlUrl" placeholder="https://..." autocomplete="off" />
+                </div>
+            </div>
+
+            <button type="submit" class="btn-join"
+                [disabled]="!meetingId || !attendeeId || !joinToken || !audioHostUrl || !signalingUrl">
+                Join Meeting
+            </button>
+        </form>
+    </div>
+
+    <!-- === JOINING STATE === -->
+    <div *ngIf="appState === 'joining'" class="joining-container">
+        <div class="spinner"></div>
+        <p class="joining-status">{{ statusMessage }}</p>
+    </div>
+
+    <!-- === MEETING STATE === -->
+    <div *ngIf="appState === 'meeting'" class="meeting-container">
+
+        <!-- Video grid -->
+        <div class="video-grid">
+            <!-- Local video (self) -->
+            <div class="video-tile local-tile" [class.video-off]="isVideoOff">
+                <video #localVideo autoplay playsinline muted></video>
+                <div class="tile-label">You</div>
+                <div *ngIf="isVideoOff" class="video-off-placeholder">
+                    <span>📹</span>
+                    <p>Camera off</p>
+                </div>
+            </div>
+            <!-- Remote videos will be injected here -->
+            <div #remoteVideosContainer class="remote-videos-container"></div>
+        </div>
+
+        <!-- Controls bar -->
+        <div class="controls">
+            <button class="ctrl-btn" [class.active]="isMuted" (click)="toggleMute()" title="Toggle mute">
+                <span class="ctrl-icon">{{ isMuted ? '🔇' : '🎙️' }}</span>
+                <span class="ctrl-label">{{ isMuted ? 'Unmute' : 'Mute' }}</span>
+            </button>
+
+            <button class="ctrl-btn ctrl-btn--leave" (click)="leaveMeeting()" title="Leave meeting">
+                <span class="ctrl-icon">📵</span>
+                <span class="ctrl-label">Leave</span>
+            </button>
+
+            <button class="ctrl-btn" [class.active]="isVideoOff" (click)="toggleVideo()" title="Toggle video">
+                <span class="ctrl-icon">{{ isVideoOff ? '📷' : '📹' }}</span>
+                <span class="ctrl-label">{{ isVideoOff ? 'Start Video' : 'Stop Video' }}</span>
+            </button>
+        </div>
+    </div>
+
+</div>
